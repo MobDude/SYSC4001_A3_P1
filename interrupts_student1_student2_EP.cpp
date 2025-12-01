@@ -5,7 +5,24 @@
  * 
  */
 
-#include<interrupts_student1_student2.hpp>
+#include "interrupts_student1_student2.hpp"
+
+static int pick_highest_priority_index(const std::vector<PCB> &ready_queue){
+    if(ready_queue.empty()){
+        return -1;
+    }
+    int best_idx = 0;
+    for(size_t i = 1; i < ready_queue.size(); i++){
+        if(ready_queue[i].priority > ready_queue[best_idx].priority){
+            best_idx = (int)i;
+        } else if(ready_queue[i].priority == ready_queue[best_idx].priority){
+            if(ready_queue[i].arrival_time < ready_queue[best_idx].arrival_time){ //if tie earlier arrival gets priority
+                best_idx = (int)i;
+            }
+        }
+    }
+    return best_idx;
+}
 
 void FCFS(std::vector<PCB> &ready_queue) {
     std::sort( 
@@ -21,6 +38,7 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
 
     std::vector<PCB> ready_queue;   //The ready queue of processes
     std::vector<PCB> wait_queue;    //The wait queue of processes
+    std::vector<unsigned int> wait_remaining; //remaining time for each wait_queue entry in ms
     std::vector<PCB> job_list;      //A list to keep track of all the processes. This is similar
                                     //to the "Process, Arrival time, Burst time" table that you
                                     //see in questions. You don't need to use it, I put it here
@@ -37,9 +55,11 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
     //make the output table (the header row)
     execution_status = print_exec_header();
 
+    std::vector<PCB> pending = list_processes; //processes that havnt been accepted into job list yet
+
     //Loop while till there are no ready or waiting processes.
     //This is the main reason I have job_list, you don't have to use it.
-    while(!all_process_terminated(job_list) || job_list.empty()) {
+    while(true) {
 
         //Inside this loop, there are three things you must do:
         // 1) Populate the ready queue with processes as they arrive
@@ -47,29 +67,257 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
         // 3) Schedule processes from the ready queue
 
         //Population of ready queue is given to you as an example.
-        //Go through the list of proceeses
-        for(auto &process : list_processes) {
-            if(process.arrival_time == current_time) {//check if the AT = current time
-                //if so, assign memory and put the process into the ready queue
-                assign_memory(process);
 
-                process.state = READY;  //Set the process state to READY
-                ready_queue.push_back(process); //Add the process to the ready queue
-                job_list.push_back(process); //Add it to the list of processes
+        //process arrivals at current time
+        for(auto it = pending.begin(); it != pending.end();) 
+        {
+            if(it->arrival_time <= current_time){
+                bool ok = assign_memory(*it); //try to allocate mem
+                if (ok){
+                    //accepted int mem and ready
+                    it->state = READY;
+                    it->start_time = -1;
+                    it->cpu_since_last_io = 0;
+                    ready_queue.push_back(*it);
+                    job_list.push_back(*it);
+                    execution_status += print_exec_status(current_time, it->PID, NEW, READY);
 
-                execution_status += print_exec_status(current_time, process.PID, NEW, READY);
+                    //log meme snapshot
+                    execution_status += "\n";
+                    {
+                        std::stringstream ss;
+                        ss << "Memory snapshot after loading PID" << it->PID << "\n";
+                        for(int i =0; i < 6; ++i){
+                            ss << "Partition" << memory_paritions[i].partition_number << " (" << memory_paritions[i].size << "MB): ";
+                            if(memory_paritions[i].occupied == -1){
+                                ss << "FREE\n";
+                            } else{
+                                ss << "PID" << memory_paritions[i].occupied << "\n";
+                            }
+                        }
+
+                        //compute totals
+                        unsigned int total_free = 0;
+                        unsigned int total_usable = 0;
+                        unsigned int total_used = 0;
+
+                        for(int i =0; i < 6; ++i){
+                            if(memory_paritions[i].occupied == -1){
+                                total_free += memory_paritions[i].size;
+                                total_usable += memory_paritions[i].size;
+                            } else{
+                                total_used += memory_paritions[i].size;
+                            }
+                        }
+
+                        ss << "Total used: " << total_used << " MB\n";
+                        ss << "Total free: " << total_free << " MB\n";
+                        ss << "Total usable free: " << total_usable << " MB\n";
+                        execution_status += ss.str();
+                        execution_status += "\n";
+                    }
+
+                    it = pending.erase(it);
+                } else{
+                    //mem not available
+                    ++it; //leave process pending and try again later
+                }
+            } else{
+                ++it;
             }
         }
 
-        ///////////////////////MANAGE WAIT QUEUE/////////////////////////
-        //This mainly involves keeping track of how long a process must remain in the ready queue
+        //manage wait queue and decrement remaining io times, move to ready when 0
+        for(size_t i =0; i < wait_queue.size();){
+            if(wait_remaining[i] > 0){
+                --wait_remaining[i];
+            }
+            if (wait_remaining[i] == 0){
+                //io completed move from waiting to ready
+                PCB proc = wait_queue[i]; //copy
+                states old_state = WAITING;
+                proc.state = READY;
+                proc.cpu_since_last_io = 0; //reset counter after io
+                
+                sync_queue(job_list, proc); //update job list entry
 
-        /////////////////////////////////////////////////////////////////
+                //push back to ready queue
+                ready_queue.push_back(proc); 
+                execution_status += print_exec_status(current_time, proc.PID, old_state, READY);
 
-        //////////////////////////SCHEDULER//////////////////////////////
-        FCFS(ready_queue); //example of FCFS is shown here
-        /////////////////////////////////////////////////////////////////
+                //remove from wait queue
+                wait_queue.erase(wait_queue.begin() + i);
+                wait_remaining.erase(wait_remaining.begin() +i);
+            } else{
+                ++i;
+            }
+        }
 
+        //if cpu idle, choose highest priority ready process
+        if (running.PID == -1 || running.state != RUNNING){
+            if(!ready_queue.empty()){
+                //pick highest priority by index
+                int idx = pick_highest_priority_index(ready_queue);
+                if(idx >= 0){
+                    PCB proc = ready_queue[idx];//move to running
+                    ready_queue.erase(ready_queue.begin() + idx); //remove from ready queue
+
+                    states old_state = proc.state;
+                    proc.state = RUNNING;
+                    if(proc.start_time == -1){
+                        proc.start_time = current_time;
+                    }
+                    sync_queue(job_list, proc);
+                    
+                    //log state 
+                    execution_status += print_exec_status(current_time, proc.PID, old_state, RUNNING);
+
+                    //copy into running
+                    running = proc;
+                }
+            }
+        }
+
+        //advance running process
+        if (running.PID != -1 && running.state == RUNNING){
+            if (running.remaining_time > 0){
+                --running.remaining_time;
+                ++running.cpu_since_last_io;
+            }
+
+            //check for termination
+            if(running.remaining_time == 0){
+                states old_state = RUNNING;
+                running.state = TERMINATED;
+                sync_queue(job_list, running);
+
+                //free mem
+                free_memory(running);
+                execution_status += print_exec_status(current_time + 1, running.PID, old_state, TERMINATED);
+
+                //log mem snapshot
+                {
+                    std::stringstream ss;
+                    ss << "\nMemory snapshot after terminating PID " << running.PID << ":\n";
+                    unsigned int total_free = 0, total_usable = 0, total_used = 0;
+                    for(int i = 0; i <6; ++i){
+                        ss << "Partition " << memory_paritions[i].partition_number << " (" << memory_paritions[i].size << "MB): ";
+                        if(memory_paritions[i].occupied == -1){
+                            ss << "FREE\n";
+                            total_free += memory_paritions[i].size;
+                            total_usable += memory_paritions[i].size;
+                        }else{
+                            ss << "PID" << memory_paritions[i].occupied << "\n";
+                            total_used += memory_paritions[i].size;
+                        }
+                    }
+                    ss << "Total used: " << total_used << " MB\n";
+                    ss << "Total free: " << total_free << " MB\n";
+                    ss << "Total usable free: " << total_usable << " MB\n";
+                    execution_status += ss.str();
+                    execution_status += "\n";
+                }
+                //mark running as idle
+                idle_CPU(running);
+            } else{
+                //check if running should perform io
+                if (running.io_freq > 0 && running.cpu_since_last_io >= running.io_freq){
+                    //move running to waiting
+                    states old_state = RUNNING;
+                    running.state = WAITING;
+                    sync_queue(job_list, running);
+                    execution_status += print_exec_status(current_time+ 1, running.PID, old_state, WAITING);
+
+                    //push to wait queue with remaining dur
+                    wait_queue.push_back(running);
+                    wait_remaining.push_back(running.io_duration);
+
+                    //running becomes idle
+                    idle_CPU(running);
+                }
+                //else continue running
+            }
+        }
+
+        //try to allocate memory for pending processes whose arrival_time <= current time
+        for (auto it = pending.begin(); it != pending.end();){
+            if (it->arrival_time <= current_time){
+                bool ok = assign_memory (*it);
+                if(ok){
+                   it->state = READY;
+                    it->start_time = -1;
+                    it->cpu_since_last_io = 0;
+                    ready_queue.push_back(*it);
+                    job_list.push_back(*it);
+                    execution_status += print_exec_status(current_time, it->PID, NOT_ASSIGNED, READY);
+                    
+                    execution_status += "\n"; //mem snapshot
+                    {
+                        std::stringstream ss;
+                        ss << "Memory snapshot after loading PID " << it->PID << ":\n";
+                        for (int i = 0; i < 6; ++i) {
+                            ss << "Partition " << memory_paritions[i].partition_number << " (" << memory_paritions[i].size << "MB): ";
+                            if (memory_paritions[i].occupied == -1) ss << "FREE\n";
+                            else ss << "PID " << memory_paritions[i].occupied << "\n";
+                        }
+
+                        unsigned int total_free = 0, total_usable = 0, total_used = 0;
+                        for (int i = 0; i < 6; ++i) {
+                            if (memory_paritions[i].occupied == -1) {
+                                total_free += memory_paritions[i].size;
+                                total_usable += memory_paritions[i].size;
+                            } else total_used += memory_paritions[i].size;
+                        }
+
+                        ss << "Total used: " << total_used << " MB\n";
+                        ss << "Total free: " << total_free << " MB\n";
+                        ss << "Total usable free: " << total_usable << " MB\n";
+                        execution_status += ss.str();
+                        execution_status += "\n";
+                    }
+                    it = pending.erase(it);
+                } else{
+                    ++it;
+                }
+            } else{
+                ++it;
+            }
+        }
+
+        //termination conditions, no pedning, ready wait or running
+        bool all_done = true;
+        if(!pending.empty()){
+            all_done = false;
+        }
+        if(!ready_queue.empty()){
+            all_done = false;
+        }
+        if(!wait_queue.empty()){
+            all_done = false;
+        }
+        if(running.PID != -1 && running.state != TERMINATED){
+            all_done = false;
+        }
+        if(!job_list.empty()){
+            for (const auto &p : job_list){
+                if(p.state != TERMINATED){
+                    all_done = false;
+                    break;
+                }
+            }
+        }
+
+        if(all_done){
+            break;
+        }
+
+        //prevent infinte sim
+        if (current_time > 60u * 1000U * 5u){ //five min as saftey
+            std::cerr << "Simulation time exceeded saftey limit, aborting.\n";
+            break;
+        }
+
+        ++current_time; //advance time by 1 ms
     }
     
     //Close the output table
@@ -77,6 +325,7 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
 
     return std::make_tuple(execution_status);
 }
+
 
 
 int main(int argc, char** argv) {

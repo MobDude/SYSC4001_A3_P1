@@ -65,6 +65,8 @@ struct PCB{
     enum states     state;
     unsigned int    io_freq;
     unsigned int    io_duration;
+    int             priority;
+    unsigned int    cpu_since_last_io; //time since last io in ms
 };
 
 //------------------------------------HELPER FUNCTIONS FOR THE SIMULATOR------------------------------
