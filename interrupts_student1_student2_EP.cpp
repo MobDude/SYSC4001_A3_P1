@@ -86,7 +86,7 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
                     execution_status += "\n";
                     {
                         std::stringstream ss;
-                        ss << "Memory snapshot after loading PID" << it->PID << "\n";
+                        ss << "Memory snapshot after loading PID" << it->PID << ":\n";
                         for(int i =0; i < 6; ++i){
                             ss << "Partition" << memory_paritions[i].partition_number << " (" << memory_paritions[i].size << "MB): ";
                             if(memory_paritions[i].occupied == -1){
