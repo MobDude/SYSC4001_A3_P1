@@ -21,12 +21,15 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
 
     std::vector<PCB> ready_queue;   //The ready queue of processes
     std::vector<PCB> wait_queue;    //The wait queue of processes
+    std::vector<unsigned int> wait_remaining; //The remaining wait time of each entry in the wait queue
     std::vector<PCB> job_list;      //A list to keep track of all the processes. This is similar
                                     //to the "Process, Arrival time, Burst time" table that you
                                     //see in questions. You don't need to use it, I put it here
                                     //to make the code easier :).
 
     unsigned int current_time = 0;
+    unsigned int quantia = 100;
+    unsigned int running_time = 0;
     PCB running;
 
     //Initialize an empty running process
@@ -62,12 +65,139 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
         }
 
         ///////////////////////MANAGE WAIT QUEUE/////////////////////////
-        //This mainly involves keeping track of how long a process must remain in the ready queue
+        //This mainly involves keeping track of how long a process must remain in the wait queue
 
+        //manage wait queue and decrement remaining io times, move to ready when 0
+        for(size_t i =0; i < wait_queue.size();){
+            if (wait_remaining[i] == 0){
+                //io completed move from waiting to ready
+                PCB proc = wait_queue[i]; //copy
+                states old_state = WAITING;
+                proc.state = READY;
+                proc.cpu_since_last_io = 0; //reset counter after io
+                
+                sync_queue(job_list, proc); //update job list entry
+
+                //push back to ready queue
+                ready_queue.push_back(proc); 
+                execution_status += print_exec_status(current_time, proc.PID, old_state, READY);
+
+                //remove from wait queue
+                wait_queue.erase(wait_queue.begin() + i);
+                wait_remaining.erase(wait_remaining.begin() +i);
+            } else{
+                --wait_remaining[i]; //decrement after check
+                ++i;
+            }
+        }
         /////////////////////////////////////////////////////////////////
 
         //////////////////////////SCHEDULER//////////////////////////////
-        FCFS(ready_queue); //example of FCFS is shown here
+
+        FCFS(ready_queue); //Sort ready queue by FCFS
+
+        //if cpu idle, choose highest priority ready process
+        if (running.PID == -1 || running.state != RUNNING){
+            if(!ready_queue.empty()){
+
+                PCB proc = ready_queue[ready_queue.size() - 1];                  // move to running
+                ready_queue.pop_back();                                          // remove from ready queue
+
+                states old_state = proc.state;
+                proc.state = RUNNING;
+                if (proc.start_time == -1)
+                {
+                    proc.start_time = current_time;
+                }
+                sync_queue(job_list, proc);
+
+                // log state
+                execution_status += print_exec_status(current_time, proc.PID, old_state, RUNNING);
+
+                //reset running_time
+                running_time = 0;
+
+                // copy into running
+                running = proc;
+
+                //log mem snapshot
+                {
+                    std::stringstream ss;
+                    ss << "\nMemory snapshot after terminating PID " << running.PID << ":\n";
+                    unsigned int total_free = 0, total_usable = 0, total_used = 0;
+                    for(int i = 0; i <6; ++i){
+                        ss << "Partition " << memory_paritions[i].partition_number << " (" << memory_paritions[i].size << "MB): ";
+                        if(memory_paritions[i].occupied == -1){
+                            ss << "FREE\n";
+                            total_free += memory_paritions[i].size;
+                            total_usable += memory_paritions[i].size;
+                        }else{
+                            ss << "PID" << memory_paritions[i].occupied << "\n";
+                            total_used += memory_paritions[i].size;
+                        }
+                    }
+                    ss << "Total used: " << total_used << " MB\n";
+                    ss << "Total free: " << total_free << " MB\n";
+                    ss << "Total usable free: " << total_usable << " MB\n";
+                    execution_status += ss.str();
+                    execution_status += "\n";
+                }
+            }
+        }
+
+        //advance running process
+        if (running.PID != -1 && running.state == RUNNING){
+            if (running.remaining_time > 0){
+                --running.remaining_time;
+                ++running.cpu_since_last_io;
+                ++running_time;
+            }
+
+            //check for termination
+            if(running.remaining_time == 0){
+                states old_state = RUNNING;
+                running.state = TERMINATED;
+                sync_queue(job_list, running);
+
+                //free mem
+                free_memory(running);
+                execution_status += print_exec_status(current_time + 1, running.PID, old_state, TERMINATED);
+
+                //mark running as idle
+                idle_CPU(running);
+            } else{
+                //check if running should perform io
+                if (running.io_freq > 0 && running.cpu_since_last_io >= running.io_freq){
+                    //move running to waiting
+                    states old_state = RUNNING;
+                    running.state = WAITING;
+                    sync_queue(job_list, running);
+                    execution_status += print_exec_status(current_time+ 1, running.PID, old_state, WAITING);
+
+                    //push to wait queue with remaining dur
+                    wait_queue.push_back(running);
+                    wait_remaining.push_back(running.io_duration);
+
+                    //running becomes idle
+                    idle_CPU(running);
+                } 
+                //check if running out of allocated time
+                else if (running_time == quantia) {
+                    //move running to ready
+                    states old_state = RUNNING;
+                    running.state = READY;
+                    sync_queue(job_list, running);
+                    execution_status += print_exec_status(current_time + 1, running.PID, old_state, READY);
+
+                    //push to ready queue
+                    ready_queue.push_back(running);
+
+                    //running becomes idle
+                    idle_CPU(running);
+                }
+                //else continue running
+            }
+        }
         /////////////////////////////////////////////////////////////////
 
     }
