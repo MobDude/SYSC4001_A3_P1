@@ -129,9 +129,6 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
 
         //manage wait queue and decrement remaining io times, move to ready when 0
         for(size_t i =0; i < wait_queue.size();){
-            if(wait_remaining[i] > 0){
-                --wait_remaining[i];
-            }
             if (wait_remaining[i] == 0){
                 //io completed move from waiting to ready
                 PCB proc = wait_queue[i]; //copy
@@ -149,6 +146,7 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
                 wait_queue.erase(wait_queue.begin() + i);
                 wait_remaining.erase(wait_remaining.begin() +i);
             } else{
+                --wait_remaining[i]; //decrement after check
                 ++i;
             }
         }
