@@ -1,0 +1,109 @@
++------------------------------------------------+
+|Time of Transition |PID | Old State | New State |
++------------------------------------------------+
+|                 0 |  1 |       NEW |     READY |
+|                 0 |  1 |     READY |   RUNNING |
+
+Memory snapshot after starting process 1:
+Partition 1 (40MB): FREE
+Partition 2 (25MB): FREE
+Partition 3 (15MB): FREE
+Partition 4 (10MB): PID1
+Partition 5 (8MB): FREE
+Partition 6 (2MB): FREE
+Total used: 10 MB
+Total free: 90 MB
+Total usable free: 90 MB
+
+|                20 |  2 |       NEW |     READY |
+|                40 |  1 |   RUNNING |   WAITING |
+|                40 |  2 |     READY |   RUNNING |
+
+Memory snapshot after starting process 2:
+Partition 1 (40MB): FREE
+Partition 2 (25MB): FREE
+Partition 3 (15MB): FREE
+Partition 4 (10MB): PID1
+Partition 5 (8MB): PID2
+Partition 6 (2MB): FREE
+Total used: 18 MB
+Total free: 82 MB
+Total usable free: 82 MB
+
+|                60 |  2 |   RUNNING |   WAITING |
+|                60 |  3 |       NEW |     READY |
+|                60 |  3 |     READY |   RUNNING |
+
+Memory snapshot after starting process 3:
+Partition 1 (40MB): FREE
+Partition 2 (25MB): FREE
+Partition 3 (15MB): FREE
+Partition 4 (10MB): PID1
+Partition 5 (8MB): PID2
+Partition 6 (2MB): PID3
+Total used: 20 MB
+Total free: 80 MB
+Total usable free: 80 MB
+
+|                65 |  1 |   WAITING |     READY |
+|                70 |  3 |   RUNNING |TERMINATED |
+|                70 |  2 |   WAITING |     READY |
+|                70 |  1 |     READY |   RUNNING |
+
+Memory snapshot after starting process 1:
+Partition 1 (40MB): FREE
+Partition 2 (25MB): FREE
+Partition 3 (15MB): FREE
+Partition 4 (10MB): PID1
+Partition 5 (8MB): PID2
+Partition 6 (2MB): FREE
+Total used: 18 MB
+Total free: 82 MB
+Total usable free: 82 MB
+
+|               110 |  1 |   RUNNING |   WAITING |
+|               110 |  2 |     READY |   RUNNING |
+
+Memory snapshot after starting process 2:
+Partition 1 (40MB): FREE
+Partition 2 (25MB): FREE
+Partition 3 (15MB): FREE
+Partition 4 (10MB): PID1
+Partition 5 (8MB): PID2
+Partition 6 (2MB): FREE
+Total used: 18 MB
+Total free: 82 MB
+Total usable free: 82 MB
+
+|               120 |  2 |   RUNNING |TERMINATED |
+|               135 |  1 |   WAITING |     READY |
+|               135 |  1 |     READY |   RUNNING |
+
+Memory snapshot after starting process 1:
+Partition 1 (40MB): FREE
+Partition 2 (25MB): FREE
+Partition 3 (15MB): FREE
+Partition 4 (10MB): PID1
+Partition 5 (8MB): FREE
+Partition 6 (2MB): FREE
+Total used: 10 MB
+Total free: 90 MB
+Total usable free: 90 MB
+
+|               175 |  1 |   RUNNING |   WAITING |
+|               200 |  1 |   WAITING |     READY |
+|               200 |  1 |     READY |   RUNNING |
+
+Memory snapshot after starting process 1:
+Partition 1 (40MB): FREE
+Partition 2 (25MB): FREE
+Partition 3 (15MB): FREE
+Partition 4 (10MB): PID1
+Partition 5 (8MB): FREE
+Partition 6 (2MB): FREE
+Total used: 10 MB
+Total free: 90 MB
+Total usable free: 90 MB
+
+|               230 |  1 |   RUNNING |TERMINATED |
++------------------------------------------------+
