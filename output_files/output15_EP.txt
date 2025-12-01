@@ -1,0 +1,64 @@
++------------------------------------------------+
+|Time of Transition |PID | Old State | New State |
++------------------------------------------------+
+|                 0 |  1 |       NEW |     READY |
+
+Memory snapshot after loading PID1:
+Partition1 (40MB): FREE
+Partition2 (25MB): FREE
+Partition3 (15MB): FREE
+Partition4 (10MB): FREE
+Partition5 (8MB): FREE
+Partition6 (2MB): PID1
+Total used: 2 MB
+Total free: 98 MB
+Total usable free: 98 MB
+
+|                 0 |  1 |     READY |   RUNNING |
+|                 5 |  2 |       NEW |     READY |
+
+Memory snapshot after loading PID2:
+Partition1 (40MB): FREE
+Partition2 (25MB): FREE
+Partition3 (15MB): FREE
+Partition4 (10MB): PID2
+Partition5 (8MB): FREE
+Partition6 (2MB): PID1
+Total used: 12 MB
+Total free: 88 MB
+Total usable free: 88 MB
+
+|                10 |  1 |   RUNNING |TERMINATED |
+
+Memory snapshot after terminating PID 1:
+Partition 1 (40MB): FREE
+Partition 2 (25MB): FREE
+Partition 3 (15MB): FREE
+Partition 4 (10MB): PID2
+Partition 5 (8MB): FREE
+Partition 6 (2MB): FREE
+Total used: 10 MB
+Total free: 90 MB
+Total usable free: 90 MB
+
+|                10 |  2 |     READY |   RUNNING |
+|                18 |  2 |   RUNNING |   WAITING |
+|                22 |  2 |   WAITING |     READY |
+|                22 |  2 |     READY |   RUNNING |
+|                30 |  2 |   RUNNING |   WAITING |
+|                34 |  2 |   WAITING |     READY |
+|                34 |  2 |     READY |   RUNNING |
+|                38 |  2 |   RUNNING |TERMINATED |
+
+Memory snapshot after terminating PID 2:
+Partition 1 (40MB): FREE
+Partition 2 (25MB): FREE
+Partition 3 (15MB): FREE
+Partition 4 (10MB): FREE
+Partition 5 (8MB): FREE
+Partition 6 (2MB): FREE
+Total used: 0 MB
+Total free: 100 MB
+Total usable free: 100 MB
+
++------------------------------------------------+

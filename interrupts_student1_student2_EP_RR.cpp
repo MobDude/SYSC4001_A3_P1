@@ -11,9 +11,6 @@
 //track which PIDs already printed their mem snapshot
 static std::set<int> snapshot_done;
 
-// Q for rr 100 ms
-static constexpr unsigned int QUANTUM_MS = 100u;
-
 //pick index of highest priority READY process in ready_queue.
 //ties broken by earlier arrival_time.
 static int pick_highest_priority_index(const std::vector<PCB> &ready_queue) {
@@ -62,6 +59,7 @@ std::tuple<std::string> run_simulation(std::vector<PCB> list_processes) {
     std::vector<PCB> pending = list_processes; // arrived but not accepted 
 
     unsigned int current_time = 0;
+    unsigned int quantia = 100;
     PCB running;
 
     //Initialize an empty running process
@@ -234,7 +232,7 @@ std::tuple<std::string> run_simulation(std::vector<PCB> list_processes) {
                     running_time = 0;
                 }
                  //check if running out of allocated time
-                else if (running_time >= QUANTUM_MS) {
+                else if (running_time >= quantia) {
                     //move running to ready
                     states old_state = RUNNING;
                     running.state = READY;

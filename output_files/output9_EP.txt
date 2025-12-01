@@ -1,0 +1,154 @@
++------------------------------------------------+
+|Time of Transition |PID | Old State | New State |
++------------------------------------------------+
+|                 0 |  1 |       NEW |     READY |
+
+Memory snapshot after loading PID1:
+Partition1 (40MB): FREE
+Partition2 (25MB): FREE
+Partition3 (15MB): FREE
+Partition4 (10MB): FREE
+Partition5 (8MB): PID1
+Partition6 (2MB): FREE
+Total used: 8 MB
+Total free: 92 MB
+Total usable free: 92 MB
+
+|                 0 |  1 |     READY |   RUNNING |
+|                 5 |  1 |   RUNNING |   WAITING |
+|                15 |  1 |   WAITING |     READY |
+|                15 |  1 |     READY |   RUNNING |
+|                19 |  2 |       NEW |     READY |
+
+Memory snapshot after loading PID2:
+Partition1 (40MB): FREE
+Partition2 (25MB): FREE
+Partition3 (15MB): FREE
+Partition4 (10MB): PID2
+Partition5 (8MB): PID1
+Partition6 (2MB): FREE
+Total used: 18 MB
+Total free: 82 MB
+Total usable free: 82 MB
+
+|                20 |  1 |   RUNNING |   WAITING |
+|                20 |  2 |     READY |   RUNNING |
+|                30 |  1 |   WAITING |     READY |
+|                37 |  2 |   RUNNING |   WAITING |
+|                37 |  1 |     READY |   RUNNING |
+|                42 |  1 |   RUNNING |   WAITING |
+|                52 |  1 |   WAITING |     READY |
+|                52 |  1 |     READY |   RUNNING |
+|                57 |  1 |   RUNNING |   WAITING |
+|                67 |  1 |   WAITING |     READY |
+|                67 |  1 |     READY |   RUNNING |
+|                72 |  1 |   RUNNING |   WAITING |
+|                80 |  2 |   WAITING |     READY |
+|                80 |  2 |     READY |   RUNNING |
+|                82 |  1 |   WAITING |     READY |
+|                85 |  3 |       NEW |     READY |
+
+Memory snapshot after loading PID3:
+Partition1 (40MB): FREE
+Partition2 (25MB): PID3
+Partition3 (15MB): FREE
+Partition4 (10MB): PID2
+Partition5 (8MB): PID1
+Partition6 (2MB): FREE
+Total used: 43 MB
+Total free: 57 MB
+Total usable free: 57 MB
+
+|                97 |  2 |   RUNNING |   WAITING |
+|                97 |  1 |     READY |   RUNNING |
+|               102 |  1 |   RUNNING |   WAITING |
+|               102 |  3 |     READY |   RUNNING |
+|               112 |  1 |   WAITING |     READY |
+|               139 |  3 |   RUNNING |   WAITING |
+|               139 |  1 |     READY |   RUNNING |
+|               140 |  2 |   WAITING |     READY |
+|               144 |  1 |   RUNNING |   WAITING |
+|               144 |  2 |     READY |   RUNNING |
+|               154 |  1 |   WAITING |     READY |
+|               161 |  2 |   RUNNING |   WAITING |
+|               161 |  3 |   WAITING |     READY |
+|               161 |  1 |     READY |   RUNNING |
+|               166 |  1 |   RUNNING |   WAITING |
+|               166 |  3 |     READY |   RUNNING |
+|               176 |  1 |   WAITING |     READY |
+|               185 |  3 |   RUNNING |TERMINATED |
+
+Memory snapshot after terminating PID 3:
+Partition 1 (40MB): FREE
+Partition 2 (25MB): FREE
+Partition 3 (15MB): FREE
+Partition 4 (10MB): PID2
+Partition 5 (8MB): PID1
+Partition 6 (2MB): FREE
+Total used: 18 MB
+Total free: 82 MB
+Total usable free: 82 MB
+
+|               185 |  1 |     READY |   RUNNING |
+|               190 |  1 |   RUNNING |   WAITING |
+|               200 |  1 |   WAITING |     READY |
+|               200 |  1 |     READY |   RUNNING |
+|               204 |  2 |   WAITING |     READY |
+|               205 |  1 |   RUNNING |   WAITING |
+|               205 |  2 |     READY |   RUNNING |
+|               215 |  1 |   WAITING |     READY |
+|               222 |  2 |   RUNNING |   WAITING |
+|               222 |  1 |     READY |   RUNNING |
+|               227 |  1 |   RUNNING |   WAITING |
+|               237 |  1 |   WAITING |     READY |
+|               237 |  1 |     READY |   RUNNING |
+|               242 |  1 |   RUNNING |   WAITING |
+|               252 |  1 |   WAITING |     READY |
+|               252 |  1 |     READY |   RUNNING |
+|               257 |  1 |   RUNNING |   WAITING |
+|               265 |  2 |   WAITING |     READY |
+|               265 |  2 |     READY |   RUNNING |
+|               267 |  1 |   WAITING |     READY |
+|               282 |  2 |   RUNNING |   WAITING |
+|               282 |  1 |     READY |   RUNNING |
+|               287 |  1 |   RUNNING |   WAITING |
+|               297 |  1 |   WAITING |     READY |
+|               297 |  1 |     READY |   RUNNING |
+|               302 |  1 |   RUNNING |   WAITING |
+|               312 |  1 |   WAITING |     READY |
+|               312 |  1 |     READY |   RUNNING |
+|               315 |  1 |   RUNNING |TERMINATED |
+
+Memory snapshot after terminating PID 1:
+Partition 1 (40MB): FREE
+Partition 2 (25MB): FREE
+Partition 3 (15MB): FREE
+Partition 4 (10MB): PID2
+Partition 5 (8MB): FREE
+Partition 6 (2MB): FREE
+Total used: 10 MB
+Total free: 90 MB
+Total usable free: 90 MB
+
+|               325 |  2 |   WAITING |     READY |
+|               325 |  2 |     READY |   RUNNING |
+|               342 |  2 |   RUNNING |   WAITING |
+|               385 |  2 |   WAITING |     READY |
+|               385 |  2 |     READY |   RUNNING |
+|               402 |  2 |   RUNNING |   WAITING |
+|               445 |  2 |   WAITING |     READY |
+|               445 |  2 |     READY |   RUNNING |
+|               460 |  2 |   RUNNING |TERMINATED |
+
+Memory snapshot after terminating PID 2:
+Partition 1 (40MB): FREE
+Partition 2 (25MB): FREE
+Partition 3 (15MB): FREE
+Partition 4 (10MB): FREE
+Partition 5 (8MB): FREE
+Partition 6 (2MB): FREE
+Total used: 0 MB
+Total free: 100 MB
+Total usable free: 100 MB
+
++------------------------------------------------+

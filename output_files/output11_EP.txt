@@ -1,0 +1,121 @@
++------------------------------------------------+
+|Time of Transition |PID | Old State | New State |
++------------------------------------------------+
+|                 0 |  1 |       NEW |     READY |
+
+Memory snapshot after loading PID1:
+Partition1 (40MB): FREE
+Partition2 (25MB): FREE
+Partition3 (15MB): FREE
+Partition4 (10MB): FREE
+Partition5 (8MB): FREE
+Partition6 (2MB): PID1
+Total used: 2 MB
+Total free: 98 MB
+Total usable free: 98 MB
+
+|                 0 |  1 |     READY |   RUNNING |
+|                 2 |  2 |       NEW |     READY |
+
+Memory snapshot after loading PID2:
+Partition1 (40MB): FREE
+Partition2 (25MB): PID2
+Partition3 (15MB): FREE
+Partition4 (10MB): FREE
+Partition5 (8MB): FREE
+Partition6 (2MB): PID1
+Total used: 27 MB
+Total free: 73 MB
+Total usable free: 73 MB
+
+|                22 |  1 |   RUNNING |TERMINATED |
+
+Memory snapshot after terminating PID 1:
+Partition 1 (40MB): FREE
+Partition 2 (25MB): PID2
+Partition 3 (15MB): FREE
+Partition 4 (10MB): FREE
+Partition 5 (8MB): FREE
+Partition 6 (2MB): FREE
+Total used: 25 MB
+Total free: 75 MB
+Total usable free: 75 MB
+
+|                22 |  3 |       NEW |     READY |
+
+Memory snapshot after loading PID3:
+Partition1 (40MB): FREE
+Partition2 (25MB): PID2
+Partition3 (15MB): PID3
+Partition4 (10MB): FREE
+Partition5 (8MB): FREE
+Partition6 (2MB): FREE
+Total used: 40 MB
+Total free: 60 MB
+Total usable free: 60 MB
+
+|                22 |  2 |     READY |   RUNNING |
+|                42 |  2 |   RUNNING |   WAITING |
+|                42 |  3 |     READY |   RUNNING |
+|                64 |  2 |   WAITING |     READY |
+|               242 |  3 |   RUNNING |   WAITING |
+|               242 |  2 |     READY |   RUNNING |
+|               244 |  3 |   WAITING |     READY |
+|               262 |  2 |   RUNNING |   WAITING |
+|               262 |  3 |     READY |   RUNNING |
+|               264 |  3 |   RUNNING |TERMINATED |
+
+Memory snapshot after terminating PID 3:
+Partition 1 (40MB): FREE
+Partition 2 (25MB): PID2
+Partition 3 (15MB): FREE
+Partition 4 (10MB): FREE
+Partition 5 (8MB): FREE
+Partition 6 (2MB): FREE
+Total used: 25 MB
+Total free: 75 MB
+Total usable free: 75 MB
+
+|               284 |  2 |   WAITING |     READY |
+|               284 |  2 |     READY |   RUNNING |
+|               304 |  2 |   RUNNING |   WAITING |
+|               326 |  2 |   WAITING |     READY |
+|               326 |  2 |     READY |   RUNNING |
+|               346 |  2 |   RUNNING |   WAITING |
+|               368 |  2 |   WAITING |     READY |
+|               368 |  2 |     READY |   RUNNING |
+|               388 |  2 |   RUNNING |   WAITING |
+|               410 |  2 |   WAITING |     READY |
+|               410 |  2 |     READY |   RUNNING |
+|               430 |  2 |   RUNNING |   WAITING |
+|               452 |  2 |   WAITING |     READY |
+|               452 |  2 |     READY |   RUNNING |
+|               472 |  2 |   RUNNING |   WAITING |
+|               494 |  2 |   WAITING |     READY |
+|               494 |  2 |     READY |   RUNNING |
+|               514 |  2 |   RUNNING |   WAITING |
+|               536 |  2 |   WAITING |     READY |
+|               536 |  2 |     READY |   RUNNING |
+|               556 |  2 |   RUNNING |   WAITING |
+|               578 |  2 |   WAITING |     READY |
+|               578 |  2 |     READY |   RUNNING |
+|               598 |  2 |   RUNNING |   WAITING |
+|               620 |  2 |   WAITING |     READY |
+|               620 |  2 |     READY |   RUNNING |
+|               640 |  2 |   RUNNING |   WAITING |
+|               662 |  2 |   WAITING |     READY |
+|               662 |  2 |     READY |   RUNNING |
+|               664 |  2 |   RUNNING |TERMINATED |
+
+Memory snapshot after terminating PID 2:
+Partition 1 (40MB): FREE
+Partition 2 (25MB): FREE
+Partition 3 (15MB): FREE
+Partition 4 (10MB): FREE
+Partition 5 (8MB): FREE
+Partition 6 (2MB): FREE
+Total used: 0 MB
+Total free: 100 MB
+Total usable free: 100 MB
+
++------------------------------------------------+
