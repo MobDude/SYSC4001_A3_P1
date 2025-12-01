@@ -82,41 +82,6 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
                     job_list.push_back(*it);
                     execution_status += print_exec_status(current_time, it->PID, NEW, READY);
 
-                    //log meme snapshot
-                    execution_status += "\n";
-                    {
-                        std::stringstream ss;
-                        ss << "Memory snapshot after loading PID" << it->PID << ":\n";
-                        for(int i =0; i < 6; ++i){
-                            ss << "Partition" << memory_paritions[i].partition_number << " (" << memory_paritions[i].size << "MB): ";
-                            if(memory_paritions[i].occupied == -1){
-                                ss << "FREE\n";
-                            } else{
-                                ss << "PID" << memory_paritions[i].occupied << "\n";
-                            }
-                        }
-
-                        //compute totals
-                        unsigned int total_free = 0;
-                        unsigned int total_usable = 0;
-                        unsigned int total_used = 0;
-
-                        for(int i =0; i < 6; ++i){
-                            if(memory_paritions[i].occupied == -1){
-                                total_free += memory_paritions[i].size;
-                                total_usable += memory_paritions[i].size;
-                            } else{
-                                total_used += memory_paritions[i].size;
-                            }
-                        }
-
-                        ss << "Total used: " << total_used << " MB\n";
-                        ss << "Total free: " << total_free << " MB\n";
-                        ss << "Total usable free: " << total_usable << " MB\n";
-                        execution_status += ss.str();
-                        execution_status += "\n";
-                    }
-
                     it = pending.erase(it);
                 } else{
                     //mem not available
@@ -170,6 +135,31 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
                     //log state 
                     execution_status += print_exec_status(current_time, proc.PID, old_state, RUNNING);
 
+                    // Print memory snapshot only when the process *actually* starts running this cycle
+                    if (proc.start_time == current_time) {
+                        std::stringstream ss;
+                        ss << "Memory snapshot at start of PID " << proc.PID << ":\n";
+
+                        unsigned int total_free = 0, total_used = 0, total_usable = 0;
+                        for (int p = 0; p < 6; ++p) {
+                            ss << "Partition " << memory_paritions[p].partition_number << " (" 
+                            << memory_paritions[p].size << "MB): ";
+                            if (memory_paritions[p].occupied == -1) {
+                                ss << "FREE\n";
+                                total_free += memory_paritions[p].size;
+                                total_usable += memory_paritions[p].size;
+                            } else {
+                                ss << "PID " << memory_paritions[p].occupied << "\n";
+                                total_used += memory_paritions[p].size;
+                            }
+                        }
+                        ss << "Total used: " << total_used << " MB\n";
+                        ss << "Total free: " << total_free << " MB\n";
+                        ss << "Total usable free: " << total_usable << " MB\n";
+
+                        execution_status += ss.str();
+                    }
+                    
                     //copy into running
                     running = proc;
                 }
@@ -193,28 +183,6 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
                 free_memory(running);
                 execution_status += print_exec_status(current_time + 1, running.PID, old_state, TERMINATED);
 
-                //log mem snapshot
-                {
-                    std::stringstream ss;
-                    ss << "\nMemory snapshot after terminating PID " << running.PID << ":\n";
-                    unsigned int total_free = 0, total_usable = 0, total_used = 0;
-                    for(int i = 0; i <6; ++i){
-                        ss << "Partition " << memory_paritions[i].partition_number << " (" << memory_paritions[i].size << "MB): ";
-                        if(memory_paritions[i].occupied == -1){
-                            ss << "FREE\n";
-                            total_free += memory_paritions[i].size;
-                            total_usable += memory_paritions[i].size;
-                        }else{
-                            ss << "PID" << memory_paritions[i].occupied << "\n";
-                            total_used += memory_paritions[i].size;
-                        }
-                    }
-                    ss << "Total used: " << total_used << " MB\n";
-                    ss << "Total free: " << total_free << " MB\n";
-                    ss << "Total usable free: " << total_usable << " MB\n";
-                    execution_status += ss.str();
-                    execution_status += "\n";
-                }
                 //mark running as idle
                 idle_CPU(running);
             } else{
@@ -234,51 +202,6 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
                     idle_CPU(running);
                 }
                 //else continue running
-            }
-        }
-
-        //try to allocate memory for pending processes whose arrival_time <= current time
-        for (auto it = pending.begin(); it != pending.end();){
-            if (it->arrival_time <= current_time){
-                bool ok = assign_memory (*it);
-                if(ok){
-                   it->state = READY;
-                    it->start_time = -1;
-                    it->cpu_since_last_io = 0;
-                    ready_queue.push_back(*it);
-                    job_list.push_back(*it);
-                    execution_status += print_exec_status(current_time, it->PID, NOT_ASSIGNED, READY);
-                    
-                    execution_status += "\n"; //mem snapshot
-                    {
-                        std::stringstream ss;
-                        ss << "Memory snapshot after loading PID " << it->PID << ":\n";
-                        for (int i = 0; i < 6; ++i) {
-                            ss << "Partition " << memory_paritions[i].partition_number << " (" << memory_paritions[i].size << "MB): ";
-                            if (memory_paritions[i].occupied == -1) ss << "FREE\n";
-                            else ss << "PID " << memory_paritions[i].occupied << "\n";
-                        }
-
-                        unsigned int total_free = 0, total_usable = 0, total_used = 0;
-                        for (int i = 0; i < 6; ++i) {
-                            if (memory_paritions[i].occupied == -1) {
-                                total_free += memory_paritions[i].size;
-                                total_usable += memory_paritions[i].size;
-                            } else total_used += memory_paritions[i].size;
-                        }
-
-                        ss << "Total used: " << total_used << " MB\n";
-                        ss << "Total free: " << total_free << " MB\n";
-                        ss << "Total usable free: " << total_usable << " MB\n";
-                        execution_status += ss.str();
-                        execution_status += "\n";
-                    }
-                    it = pending.erase(it);
-                } else{
-                    ++it;
-                }
-            } else{
-                ++it;
             }
         }
 
