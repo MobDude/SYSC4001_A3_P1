@@ -123,7 +123,7 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
                 //log mem snapshot
                 {
                     std::stringstream ss;
-                    ss << "\nMemory snapshot after terminating PID " << running.PID << ":\n";
+                    ss << "\nMemory snapshot after starting process " << running.PID << ":\n";
                     unsigned int total_free = 0, total_usable = 0, total_used = 0;
                     for(int i = 0; i <6; ++i){
                         ss << "Partition " << memory_paritions[i].partition_number << " (" << memory_paritions[i].size << "MB): ";
@@ -199,6 +199,8 @@ std::tuple<std::string /* add std::string for bonus mark */ > run_simulation(std
             }
         }
         /////////////////////////////////////////////////////////////////
+
+        ++current_time; //advance time by 1 ms
 
     }
     
